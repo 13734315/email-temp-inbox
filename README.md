@@ -16,7 +16,8 @@ D1 数据库输入：email-temp-inbox
 
 
 第四步，初始化数据库
-进入到D1数据库-点击控制台，复制INIT_ALL.sqlL里的全部内容-点执行。
+进入到D1数据库-点击控制台，
+复制migrations/INIT_ALL.sql 里的全部内容-点执行。
 
 最后，点击Worker项目地址即可使用。
 
