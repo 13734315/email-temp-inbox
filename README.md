@@ -1,1 +1,27 @@
-<img width="216" height="199" alt="image" src="https://github.com/user-attachments/assets/ced090d4-28a7-44ce-b2e9-f688be547322" />
+
+第一步，新建Worker
+复制email-temp-inbox.js里的全部代码到Worker
+
+第二步，设置邮箱路由
+cloudflare邮箱路由转发到新建的Worker
+
+<img width="458" height="393" alt="image" src="https://github.com/user-attachments/assets/42dc8961-2dcb-459a-8d84-b637c93bf8ab" />
+
+第三步，连接数据库
+在Worker项目里选择绑定-添加绑定-D1数据库
+变量名称输入：DB
+D1 数据库输入：email-temp-inbox
+
+<img width="568" height="359" alt="image" src="https://github.com/user-attachments/assets/e97dcbfb-4cf8-4f31-b567-7799b0f4a7f8" />
+
+
+第四步，初始化数据库
+进入到D1数据库-点击控制台，复制INIT_ALL.sqlL里的全部内容-点执行。
+
+最后，点击Worker项目地址即可使用。
+
+
+
+
+
+
