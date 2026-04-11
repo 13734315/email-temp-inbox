@@ -8,9 +8,13 @@ cloudflare邮箱路由转发到新建的Worker
 <img width="458" height="393" alt="image" src="https://github.com/user-attachments/assets/42dc8961-2dcb-459a-8d84-b637c93bf8ab" />
 
 第三步，连接数据库
+
 在Worker项目里选择绑定-添加绑定-D1数据库
+
 变量名称输入：DB
+
 D1 数据库输入：email-temp-inbox
+
 
 <img width="568" height="359" alt="image" src="https://github.com/user-attachments/assets/e97dcbfb-4cf8-4f31-b567-7799b0f4a7f8" />
 
