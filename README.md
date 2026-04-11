@@ -19,7 +19,7 @@ D1 数据库输入：email-temp-inbox
 <img width="568" height="359" alt="image" src="https://github.com/user-attachments/assets/e97dcbfb-4cf8-4f31-b567-7799b0f4a7f8" />
 
 
-第四步，初始化数据库
+第四步，数据库设置
 进入到D1数据库-点击控制台，
 复制migrations/INIT_ALL.sql 里的全部内容-点执行。
 
