@@ -1,10 +1,10 @@
-前提域名已接入cloudflare，并开启电子邮件路由
+前提域名已接入Cloudflare，并开启电子邮件路由
 
 第一步，新建Worker
 复制email-temp-inbox.js里的全部代码到Worker
 
 第二步，设置邮箱路由
-cloudflare邮箱路由转发到新建的Worker
+Cloudflare邮箱路由转发到新建的Worker
 
 <img width="458" height="393" alt="image" src="https://github.com/user-attachments/assets/42dc8961-2dcb-459a-8d84-b637c93bf8ab" />
 
