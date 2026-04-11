@@ -1,3 +1,4 @@
+前提域名已接入cloudflare，并开启电子邮件路由
 
 第一步，新建Worker
 复制email-temp-inbox.js里的全部代码到Worker
