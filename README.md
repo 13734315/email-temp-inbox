@@ -24,7 +24,7 @@ D1 数据库输入：email-temp-inbox
 进入到D1数据库-点击控制台，
 复制migrations/INIT_ALL.sql 里的全部内容-点执行。
 
-最后，点击Worker项目地址即可使用。
+最后，点击Worker项目地址即可使用，最后设置Worker自定义域名。
 
 
 
