@@ -1,0 +1,9 @@
+name = "email-temp-inbox"
+main = "email-temp-inbox.js"
+compatibility_date = "2026-04-11"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "email-temp-inbox"
+database_id = "1f19606d-e254-44c0-bc86-8547d80c1544"
+migrations_dir = "migrations"
