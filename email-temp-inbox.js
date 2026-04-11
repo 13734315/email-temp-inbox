@@ -327,21 +327,21 @@ export default {
     }
     body.dark {
       color-scheme: dark;
-      --page-bg: #101317;
-      --surface-low: #1b2027;
-      --surface-lowest: #151a20;
-      --surface-high: #252b33;
+      --page-bg: #0b0e13;
+      --surface-low: #242d38;
+      --surface-lowest: #181f28;
+      --surface-high: #2f3946;
       --surface-variant: rgba(148, 163, 184, 0.14);
       --text-main: #e8edf3;
       --text-soft: #a7b4c2;
       --text-faint: #7d8a98;
       --blue-main: #004bca;
       --blue-bright: #0061ff;
-      --blue-soft: #1a2230;
+      --blue-soft: #202a38;
       --chip-bg: rgba(255, 255, 255, 0.1);
       --chip-border: rgba(255, 255, 255, 0.08);
-      --card-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.65);
-      --hero-shadow: 0 20px 48px -28px rgba(0, 0, 0, 0.45);
+      --card-shadow: 0 34px 90px -34px rgba(0, 0, 0, 0.72);
+      --hero-shadow: 0 24px 56px -28px rgba(0, 0, 0, 0.42);
     }
     body {
       margin: 0;
@@ -385,11 +385,14 @@ export default {
       box-shadow: var(--hero-shadow);
     }
     body.dark .hero-gradient {
-      background: linear-gradient(145deg, #171b21 0%, #0e1116 100%);
+      background: #20262e;
     }
     body.dark .glass-chip {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    body.dark #appShell {
+      box-shadow: 0 34px 90px -34px rgba(0, 0, 0, 0.76);
     }
     #appShell {
       background: var(--surface-lowest);
@@ -515,7 +518,15 @@ export default {
     body.dark #randomAddressPreview {
       color: var(--text-main) !important;
     }
+    body.dark .theme-soft-panel .glass-chip {
+      color: var(--text-main) !important;
+    }
     body.dark .glass-chip.text-\[var\(--blue-main\)\] {
+      color: var(--text-main) !important;
+    }
+    body.dark #copyPageUrlBtn,
+    body.dark #openRandomInboxBtn,
+    body.dark #refreshBtn {
       color: var(--text-main) !important;
     }
     pre {
@@ -552,7 +563,7 @@ export default {
 
         ${
           box
-            ? `<section class="space-y-5">
+            ? `<section class="space-y-2">
                 <div class="theme-panel rounded-[24px] p-6 md:p-7">
                   <div class="mb-6 flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
@@ -562,12 +573,17 @@ export default {
                     <button id="themeToggleBtn" type="button" class="theme-toggle-button material-symbols-outlined inline-flex h-8 w-8 items-center justify-center rounded-full text-[16px]">dark_mode</button>
                   </div>
                   <div class="grid gap-5 lg:grid-cols-[1.55fr_0.95fr]">
+                    <div class="flex h-full flex-col">
                     <div>
-                    <div id="currentAddress" class="mt-3 break-all font-headline text-2xl font-bold text-[var(--blue-main)] md:text-[2rem]">${fullAddress}</div>
-                    <div class="mt-6 flex flex-wrap gap-3">
-                      <button id="copyAddressBtn" class="theme-primary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">复制邮箱地址</button>
-                      <button id="refreshBtn" class="theme-secondary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">立即刷新</button>
+                    <button id="currentAddress" type="button" class="mt-3 block break-all text-left font-headline text-2xl font-bold text-[var(--blue-main)] transition hover:opacity-85 md:text-[2rem]">${fullAddress}</button>
+                    <div class="mt-6 flex flex-wrap items-start gap-3">
+                      <button id="copyAddressBtn" class="theme-primary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">复制邮箱</button>
+                      <button id="copyPageUrlBtn" class="theme-secondary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">复制网址</button>
                       <button id="openRandomInboxBtn" type="button" class="theme-secondary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">随机生成</button>
+                    </div>
+                    </div>
+                    <div class="mt-auto flex justify-start pt-3">
+                      <button id="refreshBtn" class="theme-secondary-button inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">刷新收件</button>
                     </div>
                     </div>
                     <div class="theme-soft-panel rounded-[24px] p-6 md:p-7">
@@ -600,7 +616,7 @@ export default {
                         </button>
                       </div>
                       <div>
-                        <div class="mb-3 ml-1 text-sm font-semibold text-slate-500">当前邮箱地址</div>
+                        <div class="mb-3 ml-1 text-sm font-semibold text-slate-500">点击下面邮箱地址，进入收件箱</div>
                         <div class="theme-soft-panel flex flex-col gap-3 rounded-[18px] p-2 sm:flex-row sm:items-center">
                           <button id="randomAddressPreview" type="button" class="theme-address-link min-w-0 flex-1 truncate rounded-[14px] px-4 py-3 text-left font-headline text-lg font-bold"></button>
                           <button id="copyRandomAddressBtn" class="theme-secondary-button inline-flex shrink-0 items-center justify-center gap-2 rounded-[14px] px-5 py-3 text-sm font-semibold">
@@ -613,7 +629,7 @@ export default {
                       <div>
                         <label class="mb-3 ml-1 block text-sm font-semibold text-slate-500" for="boxInput">输入自定义名称</label>
                         <form id="jumpForm" class="space-y-4">
-                          <input id="boxInput" maxlength="24" placeholder="例如: my-business" class="theme-input w-full rounded-[16px] px-4 py-4 text-base outline-none" />
+                          <input id="boxInput" maxlength="24" placeholder="例如：Mybusiness123" class="theme-input w-full rounded-[16px] px-4 py-4 text-base outline-none" />
                           <button class="theme-accent-button inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold" type="submit">
                             <span class="material-symbols-outlined text-[20px]">inbox</span>
                             <span>进入收件箱</span>
@@ -631,9 +647,9 @@ export default {
       </div>
     </main>
 
-    <footer class="mx-auto flex max-w-5xl flex-col gap-4 px-6 pb-10 pt-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-      <div>© 2026 Editorial Utility. All rights reserved.</div>
-      <div class="flex gap-6">
+      <footer class="mx-auto flex max-w-5xl flex-col gap-4 px-6 pb-10 pt-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
+        <div>© 2026 <a href="https://www.phehe.com" class="hover:text-[var(--blue-main)]">Phehe.com</a>. All rights reserved.</div>
+        <div class="flex gap-6">
         <a href="#" class="hover:text-[var(--blue-main)]">Privacy</a>
         <a href="#" class="hover:text-[var(--blue-main)]">Terms</a>
         <a href="#" class="hover:text-[var(--blue-main)]">Support</a>
@@ -719,7 +735,7 @@ export default {
         error: "border-rose-200 bg-rose-50 text-rose-700",
         info: "border-sky-200 bg-sky-50 text-sky-700"
       };
-      bar.className = "rounded-2xl px-4 py-3 text-sm " + (styles[type] || styles.info);
+        bar.className = "rounded-2xl px-4 py-3 text-sm " + (styles[type] || styles.info);
       bar.textContent = message;
       bar.classList.remove("hidden");
     }
@@ -757,8 +773,8 @@ export default {
       const previewSuffix = previewText.length >= 260 ? "..." : "";
       const controls = hasHtml
         ? '<div class="mb-3 flex flex-wrap gap-2">'
-          + '<button class="theme-secondary-button rounded-lg px-3 py-1.5 text-xs font-medium transition" data-mail-view="html" data-mail-id="' + mail.id + '">HTML 预览</button>'
           + '<button class="theme-secondary-button rounded-lg px-3 py-1.5 text-xs font-medium transition" data-mail-view="text" data-mail-id="' + mail.id + '">文本视图</button>'
+          + '<button class="theme-secondary-button rounded-lg px-3 py-1.5 text-xs font-medium transition" data-mail-view="html" data-mail-id="' + mail.id + '">HTML 预览</button>'
           + '</div>'
         : '';
       const expanded = isExpanded
@@ -778,8 +794,11 @@ export default {
         + '<div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">'
         + '<div class="min-w-0 flex-1">'
         + '<div class="truncate text-lg font-semibold text-slate-900">' + escapeHtml(mail.subject || "(无主题)") + '</div>'
-        + '<div class="mt-1 break-all font-mono text-xs text-sky-700">' + escapeHtml(mail.from) + '</div>'
-        + '<div class="mt-1 break-all font-mono text-xs text-slate-400">' + escapeHtml(mail.to) + '</div>'
+        + '<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs">'
+        + '<span class="break-all text-sky-700">' + escapeHtml(mail.from) + '</span>'
+        + '<span class="text-slate-400">→</span>'
+        + '<span class="break-all text-slate-400">' + escapeHtml(mail.to) + '</span>'
+        + '</div>'
         + '<div class="mt-3 text-sm leading-6 text-slate-700">' + escapeHtml(previewText || "暂无预览内容") + previewSuffix + '</div>'
         + '</div>'
         + '<div class="flex shrink-0 flex-col items-start gap-2 md:items-end">'
@@ -792,15 +811,22 @@ export default {
         + '</article>';
     }
 
-    function renderEmpty() {
-      if (missingDb) {
-        return '<div class="theme-empty-state rounded-2xl border px-4 py-10 text-center text-sm">完成 D1 绑定后，这里会显示邮件列表。</div>';
+      function renderEmpty() {
+        if (missingDb) {
+          return '<div class="theme-empty-state rounded-2xl border px-4 py-10 text-center text-sm">完成 D1 绑定后，这里会显示邮件列表。</div>';
+        }
+        if (!currentBox) {
+          return '';
+        }
+        const displayHost = window.location.host
+          ? window.location.host.charAt(0).toUpperCase() + window.location.host.slice(1)
+          : '';
+        const directUrl = escapeHtml(displayHost + '/' + currentBox);
+        return '<div class="theme-empty-state rounded-[22px] px-4 py-10 text-center text-sm">'
+          + '<div>当前还没有发往 ' + escapeHtml(mailboxAddress(currentBox)) + ' 的邮件。</div>'
+          + '<div class="mt-3">地址后加邮箱前缀可直达当前页面，如：' + directUrl + '</div>'
+          + '</div>';
       }
-      if (!currentBox) {
-        return '';
-      }
-      return '<div class="theme-empty-state rounded-[22px] px-4 py-10 text-center text-sm">当前还没有发往 ' + escapeHtml(mailboxAddress(currentBox)) + ' 的邮件。</div>';
-    }
     function renderEmailList() {
       const dom = document.getElementById("emails");
       if (!dom) return;
@@ -933,6 +959,14 @@ export default {
       });
 
       document.getElementById("copyAddressBtn")?.addEventListener("click", () => {
+        copyText(mailboxAddress(currentBox), "邮箱地址已复制。");
+      });
+
+      document.getElementById("copyPageUrlBtn")?.addEventListener("click", () => {
+        copyText(window.location.href, "页面网址已复制。");
+      });
+
+      document.getElementById("currentAddress")?.addEventListener("click", () => {
         copyText(mailboxAddress(currentBox), "邮箱地址已复制。");
       });
 
