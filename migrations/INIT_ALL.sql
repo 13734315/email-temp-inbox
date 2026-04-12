@@ -17,3 +17,8 @@ CREATE INDEX IF NOT EXISTS idx_emails_expires_at
 ON emails(expires_at);
 
 ALTER TABLE emails ADD COLUMN html_content TEXT NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS mail_stats_daily (
+  day_key TEXT PRIMARY KEY,
+  received_count INTEGER NOT NULL DEFAULT 0
+);

@@ -4,6 +4,8 @@ const DEFAULT_MAIL_DOMAIN = "1239999.xyz";
 const MAIL_TTL_SECONDS = 86400;
 const MAX_TEXT_LENGTH = 15000;
 const MAX_HTML_LENGTH = 120000;
+const STATS_TIMEZONE = "Asia/Shanghai";
+const EMPTY_STATS = { todayCount: 0, last30DaysCount: 0, totalCount: 0, currentDbCount: 0 };
 
 export default {
   async email(message, env) {
@@ -98,6 +100,7 @@ export default {
       )
       .run();
 
+    await this.incrementMailStats(env, now);
     await this.maybeCleanupExpiredEmails(env, expiresAt);
   },
 
@@ -106,7 +109,7 @@ export default {
     const host = this.getMailHost(env, request);
 
     if (!env.DB) {
-      return new Response(this.getHTML({ box: "", host, missingDb: true }), {
+      return new Response(this.getHTML({ box: "", host, missingDb: true, stats: EMPTY_STATS }), {
         status: 500,
         headers: { "Content-Type": "text/html;charset=UTF-8" }
       });
@@ -140,17 +143,20 @@ export default {
         .all();
 
       await this.maybeCleanupExpiredEmails(env, nowSeconds);
+      const stats = await this.getMailStats(env);
 
       return this.json({
         box,
         host,
         emails: results || [],
-        fetchedAt: new Date().toISOString()
+        fetchedAt: new Date().toISOString(),
+        stats
       });
     }
 
     const box = this.getBoxFromPath(url.pathname);
-    return new Response(this.getHTML({ box, host, missingDb: false }), {
+    const stats = await this.getMailStats(env);
+    return new Response(this.getHTML({ box, host, missingDb: false, stats }), {
       headers: { "Content-Type": "text/html;charset=UTF-8" }
     });
   },
@@ -178,6 +184,12 @@ export default {
           ),
           env.DB.prepare(
             "CREATE INDEX IF NOT EXISTS idx_emails_expires_at ON emails(expires_at)"
+          ),
+          env.DB.prepare(
+            `CREATE TABLE IF NOT EXISTS mail_stats_daily (
+              day_key TEXT PRIMARY KEY,
+              received_count INTEGER NOT NULL DEFAULT 0
+            )`
           )
         ]);
 
@@ -205,6 +217,50 @@ export default {
     await env.DB.prepare("DELETE FROM emails WHERE expires_at <= ?")
       .bind(nowSeconds)
       .run();
+  },
+
+  getStatsDayKey(timestampMs = Date.now()) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: STATS_TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date(timestampMs));
+    const map = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+    return `${map.year}-${map.month}-${map.day}`;
+  },
+
+  async incrementMailStats(env, timestampMs) {
+    const dayKey = this.getStatsDayKey(timestampMs);
+    await env.DB.prepare(
+      `INSERT INTO mail_stats_daily (day_key, received_count)
+       VALUES (?, 1)
+       ON CONFLICT(day_key) DO UPDATE SET received_count = received_count + 1`
+    )
+      .bind(dayKey)
+      .run();
+  },
+
+  async getMailStats(env) {
+    const todayKey = this.getStatsDayKey();
+    const last30DaysKey = this.getStatsDayKey(Date.now() - (29 * 24 * 60 * 60 * 1000));
+    const result = await env.DB.prepare(
+      `SELECT
+         COALESCE(SUM(CASE WHEN day_key = ? THEN received_count ELSE 0 END), 0) AS todayCount,
+         COALESCE(SUM(CASE WHEN day_key >= ? THEN received_count ELSE 0 END), 0) AS last30DaysCount,
+         COALESCE(SUM(received_count), 0) AS totalCount
+       FROM mail_stats_daily`
+    )
+      .bind(todayKey, last30DaysKey)
+      .first();
+    const dbCountResult = await env.DB.prepare("SELECT COUNT(*) AS currentDbCount FROM emails").first();
+
+    return {
+      todayCount: Number(result?.todayCount || 0),
+      last30DaysCount: Number(result?.last30DaysCount || 0),
+      totalCount: Number(result?.totalCount || 0),
+      currentDbCount: Number(dbCountResult?.currentDbCount || 0)
+    };
   },
 
   json(data, status = 200) {
@@ -282,11 +338,24 @@ export default {
       .replace(/'/g, "&#39;");
   },
 
-  getHTML({ box = "", host = "", missingDb = false }) {
+  getHTML({ box = "", host = "", missingDb = false, stats = EMPTY_STATS }) {
     const title = box ? `${box} 临时邮箱` : "临时邮箱";
     const escapedBox = this.escapeHTML(box);
     const escapedHost = this.escapeHTML(host);
     const fullAddress = box && host ? `${escapedBox}@${escapedHost}` : "";
+    const statsSummary = {
+      todayCount: Number(stats?.todayCount || 0),
+      last30DaysCount: Number(stats?.last30DaysCount || 0),
+      totalCount: Number(stats?.totalCount || 0),
+      currentDbCount: Number(stats?.currentDbCount || 0)
+    };
+    const favicon = `data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+        <rect width="64" height="64" rx="16" fill="#16a34a"/>
+        <rect x="12" y="18" width="40" height="28" rx="6" fill="#ffffff"/>
+        <path d="M16 22l16 12 16-12" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`
+    )}`;
 
     let notice = "随机生成一个邮箱名，或输入你自己的邮箱名，即可进入独立收件箱。";
     if (missingDb) {
@@ -298,10 +367,11 @@ export default {
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="icon" href="${favicon}" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet">
@@ -649,18 +719,20 @@ export default {
 
       <footer class="mx-auto flex max-w-5xl flex-col gap-4 px-6 pb-10 pt-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
         <div>© 2026 <a href="https://www.phehe.com" class="hover:text-[var(--blue-main)]">Phehe.com</a>. All rights reserved.</div>
-        <div class="flex gap-6">
-        <a href="#" class="hover:text-[var(--blue-main)]">Privacy</a>
-        <a href="#" class="hover:text-[var(--blue-main)]">Terms</a>
-        <a href="#" class="hover:text-[var(--blue-main)]">Support</a>
-      </div>
-    </footer>
+        <div id="footerStats" class="flex flex-wrap justify-end gap-x-4 gap-y-2 text-right">
+          <div>今日 <span id="statsToday">${statsSummary.todayCount}</span></div>
+          <div>30天 <span id="statsLast30">${statsSummary.last30DaysCount}</span></div>
+          <div>总收 <span id="statsAll">${statsSummary.totalCount}</span></div>
+          <div>在库 <span id="statsCurrentDb">${statsSummary.currentDbCount}</span></div>
+        </div>
+      </footer>
   </div>
 
   <script>
     const currentBox = ${JSON.stringify(box)};
     const mailHost = ${JSON.stringify(host)};
     const missingDb = ${JSON.stringify(missingDb)};
+    const initialStats = ${JSON.stringify(statsSummary)};
     const refreshIntervalMs = 5000;
     let nextRefreshTimer = null;
     let currentTheme = "light";
@@ -749,6 +821,18 @@ export default {
       const lastUpdatedText = document.getElementById("lastUpdatedText");
       if (mailCountText) mailCountText.textContent = "邮件数量：" + count + " 封";
       if (lastUpdatedText) lastUpdatedText.textContent = "最近刷新：" + formatTime(fetchedAt);
+    }
+
+    function updateFooterStats(stats) {
+      const summary = stats || {};
+      const today = document.getElementById("statsToday");
+      const last30 = document.getElementById("statsLast30");
+      const all = document.getElementById("statsAll");
+      const currentDb = document.getElementById("statsCurrentDb");
+      if (today) today.textContent = String(Number(summary.todayCount || 0));
+      if (last30) last30.textContent = String(Number(summary.last30DaysCount || 0));
+      if (all) all.textContent = String(Number(summary.totalCount || 0));
+      if (currentDb) currentDb.textContent = String(Number(summary.currentDbCount || 0));
     }
 
     function getPreviewText(mail) {
@@ -867,16 +951,17 @@ export default {
       const refreshBtn = document.getElementById("refreshBtn");
       if (refreshBtn) refreshBtn.disabled = true;
 
-      try {
-        const res = await fetch("/api/list?box=" + encodeURIComponent(currentBox));
-        const payload = await res.json();
-        latestEmails = Array.isArray(payload.emails) ? payload.emails : [];
-        syncStateWithEmails();
-        renderEmailList();
-        updateRefreshMeta(latestEmails.length, payload.fetchedAt || new Date().toISOString());
-        if (!silent) {
-          showStatus("收件箱已刷新。", "info");
-        }
+        try {
+          const res = await fetch("/api/list?box=" + encodeURIComponent(currentBox));
+          const payload = await res.json();
+          latestEmails = Array.isArray(payload.emails) ? payload.emails : [];
+          syncStateWithEmails();
+          renderEmailList();
+          updateRefreshMeta(latestEmails.length, payload.fetchedAt || new Date().toISOString());
+          updateFooterStats(payload.stats || initialStats);
+          if (!silent) {
+            showStatus("收件箱已刷新。", "info");
+          }
       } catch (error) {
         showStatus("刷新失败，请稍后再试。", "error");
       } finally {
@@ -983,6 +1068,7 @@ export default {
       loadInbox(true);
     }
     initTheme();
+    updateFooterStats(initialStats);
 
     if (missingDb) {
       document.getElementById("emails").classList.remove("hidden");
