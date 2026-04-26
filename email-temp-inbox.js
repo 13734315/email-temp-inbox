@@ -18,6 +18,7 @@ export default {
     if (!box) return;
 
     const now = Date.now();
+    const nowSeconds = Math.floor(now / 1000);
     const id = crypto.randomUUID();
     const rawBytes = new Uint8Array(await new Response(message.raw).arrayBuffer());
     const raw = this.bytesToBinaryString(rawBytes);
@@ -29,7 +30,7 @@ export default {
       .trim()
       .substring(0, MAX_TEXT_LENGTH);
     const sanitizedHtml = this.sanitizeHtmlEmail(htmlBody).trim().substring(0, MAX_HTML_LENGTH);
-    const expiresAt = Math.floor(now / 1000) + MAIL_TTL_SECONDS;
+    const expiresAt = nowSeconds + MAIL_TTL_SECONDS;
 
     await env.DB.prepare(
       `INSERT INTO emails (
@@ -60,7 +61,7 @@ export default {
       .run();
 
     await this.incrementMailStats(env, now);
-    await this.maybeCleanupExpiredEmails(env, expiresAt);
+    await this.maybeCleanupExpiredEmails(env, nowSeconds);
   },
 
   async fetch(request, env) {
