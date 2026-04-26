@@ -539,7 +539,14 @@ export default {
   },
 
   normalizeBox(value = "") {
-    return value.trim().replace(/[^a-z0-9_-]/gi, "").toUpperCase();
+    let input = String(value || "").trim().replace(/^mailto:/i, "");
+    try {
+      input = decodeURIComponent(input);
+    } catch (error) {
+      // Keep the original value if it is not a valid encoded string.
+    }
+    const localPart = input.split(",")[0].split("@")[0] || "";
+    return localPart.replace(/[^a-z0-9_-]/gi, "").toUpperCase();
   },
 
   getBoxFromPath(pathname) {
@@ -548,9 +555,7 @@ export default {
   },
 
   getBoxFromAddress(address = "") {
-    const mailbox = address.split(",")[0].trim();
-    const localPart = mailbox.split("@")[0] || "";
-    return this.normalizeBox(localPart);
+    return this.normalizeBox(address);
   },
 
   getMailHost(env, request) {
@@ -890,11 +895,16 @@ export default {
                     </div>
                     </div>
                     <div class="theme-soft-panel rounded-[24px] p-6 md:p-7">
-                      <div class="mt-1 space-y-3 text-sm text-slate-700">
-                        <div class="glass-chip flex w-fit items-center justify-start rounded-full px-3 py-1 font-medium text-[var(--blue-main)]">自动刷新中</div>
-                        <div>自动刷新：每 5 秒一次</div>
-                        <div id="mailCountText">邮件数量：0 封</div>
-                        <div id="lastUpdatedText">最近刷新：未开始</div>
+                      <div>
+                        <label class="mb-3 ml-1 block text-sm font-semibold text-slate-500" for="boxInput">输入自定义名称</label>
+                        <form id="jumpForm" class="space-y-4">
+                          <input id="boxInput" maxlength="254" placeholder="例如：5J8UOP21 或 5J8UOP21@yourdomain.com" class="theme-input w-full rounded-[16px] px-4 py-4 text-base outline-none" />
+                          <button class="theme-accent-button inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold" type="submit">
+                            <span class="material-symbols-outlined text-[20px]">inbox</span>
+                            <span>进入收件箱</span>
+                          </button>
+                        </form>
+                        <div id="inputHelp" class="theme-note mt-3 text-xs">可输入邮箱名前缀或完整邮箱地址，系统只使用 @ 前面的邮箱名。</div>
                       </div>
                     </div>
                   </div>
@@ -932,13 +942,13 @@ export default {
                       <div>
                         <label class="mb-3 ml-1 block text-sm font-semibold text-slate-500" for="boxInput">输入自定义名称</label>
                         <form id="jumpForm" class="space-y-4">
-                          <input id="boxInput" maxlength="24" placeholder="例如：Mybusiness123" class="theme-input w-full rounded-[16px] px-4 py-4 text-base outline-none" />
+                          <input id="boxInput" maxlength="254" placeholder="例如：5J8UOP21 或 5J8UOP21@yourdomain.com" class="theme-input w-full rounded-[16px] px-4 py-4 text-base outline-none" />
                           <button class="theme-accent-button inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-4 text-base font-semibold" type="submit">
                             <span class="material-symbols-outlined text-[20px]">inbox</span>
                             <span>进入收件箱</span>
                           </button>
                         </form>
-                        <div id="inputHelp" class="theme-note mt-3 text-xs">支持字母、数字、下划线和短横线，系统会自动转成大写。</div>
+                        <div id="inputHelp" class="theme-note mt-3 text-xs">可输入邮箱名前缀或完整邮箱地址，系统只使用 @ 前面的邮箱名。</div>
                       </div>
                     </div>
                   </div>
@@ -951,7 +961,7 @@ export default {
     </main>
 
       <footer class="mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 pb-10 pt-6 text-center text-sm text-slate-400 md:flex-row md:items-center md:justify-between md:text-left">
-        <div>© 2026 <a href="https://www.phehe.com" class="hover:text-[var(--blue-main)]">Phehe.com</a>. All rights reserved.</div>
+        <div>© 2026 <a href="https://www.phehe.com" class="hover:text-[var(--blue-main)]">Phehe.com</a>. All rights reserved. <a href="https://github.com/13734315/email-temp-inbox" class="hover:text-[var(--blue-main)]" target="_blank" rel="noopener noreferrer">GitHub</a></div>
         <div id="footerStats" class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-center md:justify-end md:text-right">
           <div>今日 <span id="statsToday">${statsSummary.todayCount}</span></div>
           <div>30天 <span id="statsLast30">${statsSummary.last30DaysCount}</span></div>
@@ -987,7 +997,24 @@ export default {
     }
 
     function normalizeBox(value) {
-      return String(value || "").trim().replace(/[^a-z0-9_-]/gi, "").toUpperCase();
+      let input = String(value || "").trim().replace(/^mailto:/i, "");
+      try {
+        input = decodeURIComponent(input);
+      } catch (error) {
+        // Keep the original value if it is not a valid encoded string.
+      }
+      const localPart = input.split(",")[0].split("@")[0] || "";
+      return localPart.replace(/[^a-z0-9_-]/gi, "").toUpperCase();
+    }
+
+    function formatBoxInputValue(value) {
+      const raw = String(value || "");
+      const atIndex = raw.indexOf("@");
+      if (atIndex >= 0) {
+        const localPart = raw.slice(0, atIndex).replace(/[^a-z0-9_-]/gi, "").toUpperCase();
+        return localPart + raw.slice(atIndex);
+      }
+      return raw.replace(/[^a-z0-9_-]/gi, "").toUpperCase();
     }
 
     function setTheme(theme) {
@@ -1020,6 +1047,15 @@ export default {
 
     function mailboxAddress(boxName) {
       return boxName && mailHost ? boxName + "@" + mailHost : "";
+    }
+
+    function goToBox(boxName) {
+      const normalized = normalizeBox(boxName);
+      if (!normalized) {
+        showStatus("请输入有效的邮箱名。", "error");
+        return;
+      }
+      window.location.href = "/" + encodeURIComponent(normalized);
     }
 
     async function copyText(value, successMessage) {
@@ -1212,15 +1248,6 @@ export default {
         if (preview) preview.textContent = mailboxAddress(generatedBox);
       }
 
-      function goToBox(boxName) {
-        const normalized = normalizeBox(boxName);
-        if (!normalized) {
-          showStatus("请输入有效的邮箱名。", "error");
-          return;
-        }
-        window.location.href = "/" + encodeURIComponent(normalized);
-      }
-
       document.getElementById("randomBoxBtn")?.addEventListener("click", () => {
         generatedBox = randomBox();
         updatePreview();
@@ -1241,9 +1268,9 @@ export default {
       });
 
       boxInput?.addEventListener("input", () => {
-        const normalized = normalizeBox(boxInput.value);
-        if (normalized !== boxInput.value) {
-          boxInput.value = normalized;
+        const formatted = formatBoxInputValue(boxInput.value);
+        if (formatted !== boxInput.value) {
+          boxInput.value = formatted;
         }
       });
 
@@ -1251,6 +1278,9 @@ export default {
     }
 
     function setupInboxPage() {
+      const boxInput = document.getElementById("boxInput");
+      const jumpForm = document.getElementById("jumpForm");
+
       document.getElementById("emails")?.addEventListener("click", (event) => {
         const toggle = event.target.closest("[data-mail-toggle]");
         if (toggle) {
@@ -1296,6 +1326,18 @@ export default {
       document.getElementById("openRandomInboxBtn")?.addEventListener("click", () => {
         const nextBox = randomBox();
         window.open("/" + encodeURIComponent(nextBox), "_blank", "noopener,noreferrer");
+      });
+
+      jumpForm?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        goToBox(boxInput?.value || "");
+      });
+
+      boxInput?.addEventListener("input", () => {
+        const formatted = formatBoxInputValue(boxInput.value);
+        if (formatted !== boxInput.value) {
+          boxInput.value = formatted;
+        }
       });
 
       loadInbox(true);
